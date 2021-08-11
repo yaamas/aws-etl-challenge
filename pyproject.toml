@@ -3,6 +3,7 @@ name = "aws-etl-challenge"
 version = "0.1.0"
 description = "ACloudGuru AWS ETL Challenge"
 authors = ["Yahyaa <kogam22@gmail.com>"]
+readme = "Readme.md"
 license = "MIT"
 
 [tool.poetry.dependencies]
