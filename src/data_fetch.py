@@ -16,13 +16,15 @@ def fetch_data(url):
     return df
 
 
-# if __name__ == "__main__":
-#     NYT_DATASET = (
-#         "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv"
-#     )
-#     JH_DATASET = "https://raw.githubusercontent.com/datasets/covid-19/master/data/time-series-19-covid-combined.csv"
+if __name__ == "__main__":
+    from data_transform import transformation
 
-#     t = fetch_data(NYT_DATASET)
-#     t["date"] = pd.to_datetime(t["date"])
-#     print(t.info(), t.describe())
-#     print(t.head())
+    NYT_DATASET = (
+        "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv"
+    )
+    JH_DATASET = "https://raw.githubusercontent.com/datasets/covid-19/master/data/time-series-19-covid-combined.csv"
+
+    n = fetch_data(NYT_DATASET)
+    j = fetch_data(JH_DATASET)
+
+    merg_data = transformation(n, j)
