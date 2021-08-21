@@ -14,6 +14,7 @@ def filter_join(df1, df2):
     """"""
 
     df2 = df2[df2["country"] == "US"]
+    df2.drop(["country"], axis=1, inplace=True)
     return pd.merge(df1, df2, how="inner", on=["date"])
 
 
@@ -34,6 +35,9 @@ def transformation(nyt_ds, jh_ds):
 
     nyt_ds, jh_ds = cleaning(nyt_ds, jh_ds)
     merged_data = filter_join(nyt_ds, jh_ds)
+
+    merged_data.sort_values(by=["date"], ascending=True, inplace=True)
+
     return merged_data
 
 
