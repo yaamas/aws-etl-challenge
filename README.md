@@ -4,15 +4,15 @@
 
 - [x] EXTRACTION. In your Python code, download this CSV file from Github. (This is a daily dump of US COVID-19 data from a repository maintained by the New York Times. Every day, the file updates with an additional row of data.) Load the data into an object in memory.
 
-- [ ] TRANSFORMATION. Perform data manipulations in Python code.
+- [x] TRANSFORMATION. Perform data manipulations in Python code.
 
     - [x] Cleaning – The date field should be converted to a date object, not a string.
 
-    - [ ] Joining – We want to show recovered cases as well as confirmed cases and deaths. The NYT data does not track recoveries, so you will need to pull US recovery data from this Johns Hopkins dataset and merge it into your record for each day. Note: the case and death counts for the Johns Hopkins dataset disagree with the NYT data. We will treat the NYT data as authoritative and only copy the recovery data from Johns Hopkins.)
+    - [x] Joining – We want to show recovered cases as well as confirmed cases and deaths. The NYT data does not track recoveries, so you will need to pull US recovery data from this Johns Hopkins dataset and merge it into your record for each day. Note: the case and death counts for the Johns Hopkins dataset disagree with the NYT data. We will treat the NYT data as authoritative and only copy the recovery data from Johns Hopkins.)
 
     - [x] Filtering – Remove non-US data from the Johns Hopkins dataset. Remove any days that do not exist in both datasets. (There is an off-by-one issue.)
 
-- [ ] CODE CLEANUP. Abstract your data manipulation work into a Python module. This module should only perform transformations. It should not care where the CSV files are stored and it should not know anything about the database in the next step.
+- [x] CODE CLEANUP. Abstract your data manipulation work into a Python module. This module should only perform transformations. It should not care where the CSV files are stored and it should not know anything about the database in the next step.
 
 - [ ] LOAD. Now, write code to load your transformed data into a database. For the purposes of this exercise, you can use any database you choose. I suggest using DynamoDB with boto3 or RDS Postgres with pyscopg. Either way, you’ll want each record in the table to have the date, US case count, deaths, and recoveries for a day of the pandemic.
 
