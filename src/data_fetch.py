@@ -28,3 +28,4 @@ if __name__ == "__main__":
     j = fetch_data(JH_DATASET)
 
     merg_data = transformation(n, j)
+    print(merg_data.head(), merg_data.info())
