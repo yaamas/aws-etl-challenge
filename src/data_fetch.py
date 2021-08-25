@@ -1,14 +1,20 @@
 import io
+import logging
 
 import pandas as pd
 import requests as req
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_data(url):
     url_data = req.get(url)
 
     if url_data.status_code != 200:
+        logger.debug("Error while fetching {url}")
         url_data.raise_for_status()
+
+    logger.info(f"Fetched {url} successfully")
 
     raw_data = (url_data.content).decode("utf-8")
     df = pd.read_csv(io.StringIO(raw_data))
