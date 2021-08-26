@@ -13,10 +13,19 @@ logger = logging.getLogger(__name__)
 def connect_db(host, user, passw, db=None):
     """"""
     if db:
-        return psycopg2.connect(
-            host=host, dbname=db, user=user, password=passw
-        )
-    return psycopg2.connect(host=host, user=user, password=passw)
+        try:
+            conn = psycopg2.connect(
+                host=host, dbname=db, user=user, password=passw
+            )
+        except Exception as e:
+            logger.error(e)
+    else:
+        try:
+            psycopg2.connect(host=host, user=user, password=passw)
+        except Exception as e:
+            logger.error(e)
+
+    return conn
 
 
 def check_db_exists(conn, db):
