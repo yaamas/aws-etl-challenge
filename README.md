@@ -14,13 +14,13 @@
 
 - [x] CODE CLEANUP. Abstract your data manipulation work into a Python module. This module should only perform transformations. It should not care where the CSV files are stored and it should not know anything about the database in the next step.
 
-- [ ] LOAD. Now, write code to load your transformed data into a database. For the purposes of this exercise, you can use any database you choose. I suggest using DynamoDB with boto3 or RDS Postgres with pyscopg. Either way, you’ll want each record in the table to have the date, US case count, deaths, and recoveries for a day of the pandemic.
+- [x] LOAD. Now, write code to load your transformed data into a database. For the purposes of this exercise, you can use any database you choose. I suggest using DynamoDB with boto3 or RDS Postgres with pyscopg. Either way, you’ll want each record in the table to have the date, US case count, deaths, and recoveries for a day of the pandemic.
 
 - [ ] NOTIFICATION. When the database has been updated, your code should trigger an SNS message to notify any interested consumers that the ETL job has completed. The message should include the number of rows updated in the database.
 
 - [ ] ERROR HANDLING. Your code should be able to handle these common control flow situations:
 
-    - [ ] Initial load vs update — you should be able to load the entire historical data set into your database the first time the job is run, and then update with only the most recent day’s data thereafter.
+    - [x] Initial load vs update — you should be able to load the entire historical data set into your database the first time the job is run, and then update with only the most recent day’s data thereafter.
 
     - [ ] If the data contains unexpected or malformed input, your code should fail gracefully and report an error message via SNS. Next time your job runs, it should remember that it did not succeed in processing the previous data, and try again before moving on to more recent data.
 
@@ -28,7 +28,7 @@
 
 - [ ] IaC. Make sure your infrastructure (Lambda function, CloudWatch rule, SNS trigger, database, etc) is defined in code (CloudFormation, Terraform, or similar)
 
-- [ ] SOURCE CONTROL. Store your code and config in source control (GitHub, or similar)
+- [x] SOURCE CONTROL. Store your code and config in source control (GitHub, or similar)
 
 - [ ] DASHBOARD. What would an ETL process be without a report? See if you can hook your database up to AWS Quicksight or another BI service like Tableau to generate a visualization of US case counts, fatality, and recoveries over time.
 
