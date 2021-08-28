@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import (
@@ -17,13 +18,13 @@ def connect_db(host, user, passw, db=None):
             conn = psycopg2.connect(
                 host=host, dbname=db, user=user, password=passw
             )
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Database connection failed - with db param")
     else:
         try:
-            psycopg2.connect(host=host, user=user, password=passw)
-        except Exception as e:
-            logger.error(e)
+            conn = psycopg2.connect(host=host, user=user, password=passw)
+        except Exception:
+            logger.exception("Database connection failed - without db param")
 
     return conn
 
@@ -58,9 +59,9 @@ def check_table_exists(conn, table):
                 f"SELECT EXISTS(SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table.lower()}');"
             )
         )
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        logger.error(e)
+        logger.exception("Check table exists failed")
     finally:
         exists = cur.fetchone()[0]
         cur.close()
@@ -77,8 +78,8 @@ def create_db(conn, db):
     try:
         cur = conn.cursor()
         cur.execute(sql.SQL(f"CREATE DATABASE {db};"))
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Create DB failed")
     finally:
         conn.set_isolation_level(ISOLATION_LEVEL_READ_COMMITTED)
         cur.close()
@@ -97,8 +98,8 @@ def create_table(conn, table):
                 f"CREATE TABLE {table} (id SERIAL PRIMARY KEY, dates DATE UNIQUE NOT NULL, cases INTEGER NOT NULL, deaths INTEGER NOT NULL, recovered INTEGER NOT NULL);"
             )
         )
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Create table failed")
     finally:
         conn.commit()
         cur.close()
@@ -110,52 +111,66 @@ def insert_data(conn, data, table):
     """"""
 
     # Convert to lists for processing next
-    data_rows = data.to_records(index=False)
+    data_rows = data.to_records(True)
 
     # Check entries in the table to know what to insert
     try:
         cur = conn.cursor()
         cur.execute(sql.SQL(f"SELECT COUNT(*) FROM {table};"))
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        logger.error(e)
+        logger.exception("Select count failed")
 
     table_rows = cur.fetchone()[0]
 
+    logger.info(f"Rows in data: [{len(data_rows)}]")
+    logger.info(f"Rows in table: [{table_rows}]")
+
     # More than one row missing, don't know which, try inserting all one by one
-    if table_rows > 0 and table_rows < (len(data) - 1):
+    if (
+        table_rows != (len(data) - 1)
+        and table_rows > 0
+        and table_rows < (len(data) - 1)
+    ):
         logger.info(f"More than one row missing - {table_rows}")
         for row in data_rows:
+            excep = False
             try:
                 cur.execute(
                     sql.SQL(
-                        f"INSERT INTO {table} (\"dates\", \"cases\", \"deaths\", \"recovered\") VALUES ('{row[0]}', '{row[1]}', '{row[2]}', '{row[3]}')"
+                        f"INSERT INTO {table} (\"dates\", \"cases\", \"deaths\", \"recovered\") VALUES ('{row[1]}', '{row[2]}', '{row[3]}', '{row[4]}')"
                     )
                 )
-            except psycopg2.IntegrityError as e:
+            except psycopg2.IntegrityError:
+                excep = True
                 conn.rollback()
-                logger.debug(e)
+                logger.debug(
+                    f"Unique constraint violation: {pd.to_datetime(row[1]).date()}"
+                )
                 # print("1 - !@#$%^&*()_+-=:", e)
-            except Exception as e:
+            except Exception:
+                excep = True
                 conn.rollback()
-                logger.error(e)
+                logger.exception("Insert 'for' failed")
                 # print("2 - !@#$%^&*()_+-=:", e)
             finally:
                 conn.commit()
-                logger.info(
-                    f"Insert for: Inserted {len(data_rows)} successfully"
-                )
-
+                if not excep:
+                    logger.info(f"Insert for: Inserted {row[0]} successfully")
+    # If rows in table = rows in neww data, do nothing
+    elif table_rows == len(data):
+        pass
     # One row to insert all all rows to insert
     else:
-        logger.info(f"Rows missiing [{table_rows}]")
+        excep = False
         if table_rows == (len(data) - 1):
             data_rows = data_rows[-1:]
-            logger.info(f"Only 1 row to update, {data_rows}")
+            logger.info(f"Only 1 row to update, [{data_rows[0][0]}]")
 
         # If all rows missing, insert all rows. Otherwise use updated data_rows
         arg_str = ",".join(
-            f"('{da}', '{c}', '{de}', '{r}')" for (da, c, de, r) in data_rows
+            f"('{da}', '{c}', '{de}', '{r}')"
+            for (_, da, c, de, r) in data_rows
         )
         try:
             cur.execute(
@@ -164,14 +179,16 @@ def insert_data(conn, data, table):
                     + arg_str
                 )
             )
-        except Exception as e:
+        except Exception:
+            excep = True
             conn.rollback()
-            logger.error(e)
+            logger.exception("Insert Chain failed")
         finally:
             conn.commit()
-            logger.info(
-                f"Insert Chain: Inserted {len(data_rows)} successfully"
-            )
+            if not excep:
+                logger.info(
+                    f"Insert Chain: Inserted [{len(data_rows)}] rows successfully"
+                )
 
     cur.close()
 
